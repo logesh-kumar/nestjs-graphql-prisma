@@ -1,46 +1,67 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { v4 as uuid } from 'uuid';
+import { Student } from '@prisma/client';
+import { PrismaService } from 'src/prisma.service';
 import { CreateStudentInput } from './create-student.input';
-import { Student } from './student.entity';
 
 @Injectable()
 export class StudentService {
-  constructor(
-    @InjectRepository(Student) private studentRepository: Repository<Student>,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async students(): Promise<Student[]> {
-    return this.studentRepository.find();
+    return this.prismaService.student.findMany();
   }
 
   async createStudent(
     createStudentInput: CreateStudentInput,
   ): Promise<Student> {
     const { firstName, lastName } = createStudentInput;
-    const student = this.studentRepository.create({
-      id: uuid(),
-      firstName,
-      lastName,
+    return this.prismaService.student.create({
+      data: {
+        firstName,
+        lastName,
+      },
     });
-    return this.studentRepository.save(student);
   }
 
   async studentById(id): Promise<Student> {
-    return await this.studentRepository.findOne({ id });
+    return await this.prismaService.student.findUnique({
+      where: {
+        id,
+      },
+    });
   }
 
   async deleteStudent(id): Promise<Student> {
-    const student = await this.studentRepository.findOne({ id });
-    return this.studentRepository.remove(student);
+    return this.prismaService.student.delete({
+      where: {
+        id,
+      },
+    });
   }
 
-  async getManyStudents(studentIds: string[]): Promise<Student[]> {
-    return this.studentRepository.find({
+  async getManyStudents(studentIds: number[]): Promise<Student[]> {
+    return this.prismaService.student.findMany({
       where: {
         id: {
-          $in: studentIds,
+          in: studentIds,
+        },
+      },
+    });
+  }
+
+  async assignLessonToStudent(
+    studentId: number,
+    lessonId: number,
+  ): Promise<Student> {
+    return this.prismaService.student.update({
+      where: {
+        id: studentId,
+      },
+      data: {
+        lesson: {
+          connect: {
+            id: lessonId,
+          },
         },
       },
     });

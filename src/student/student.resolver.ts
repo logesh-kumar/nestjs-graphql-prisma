@@ -13,7 +13,7 @@ export class StudentResolver {
   }
 
   @Query(() => StudentType)
-  studentById(@Args('id') id: string) {
+  studentById(@Args('id') id: number) {
     return this.studentService.studentById(id);
   }
 
@@ -25,7 +25,15 @@ export class StudentResolver {
   }
 
   @Mutation(() => StudentType)
-  deleteStudent(@Args('id') id: string) {
+  deleteStudent(@Args('id') id: number) {
     return this.studentService.deleteStudent(id);
+  }
+
+  @Mutation(() => StudentType)
+  assignLessonToStudent(
+    @Args('studentId') studentId: number,
+    @Args('lessonId') lessonId: number,
+  ) {
+    return this.studentService.assignLessonToStudent(studentId, lessonId);
   }
 }
